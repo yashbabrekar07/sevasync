@@ -107,4 +107,30 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Emergency Seed Route (to bypass local network blocks)
+router.get('/seed-db', async (req, res) => {
+  try {
+    const salt = await bcrypt.genSalt(10);
+    const pass = await bcrypt.hash("demo123", salt);
+
+    // Create NGO
+    await User.findOneAndUpdate(
+      { email: "ngo@demo.com" },
+      { name: "Pune Seva Foundation (NGO)", password: pass, role: "ngo", contact: "9876543210", location: "Shivaji Nagar, Pune" },
+      { upsert: true }
+    );
+
+    // Create Volunteer
+    await User.findOneAndUpdate(
+      { email: "volunteer@demo.com" },
+      { name: "Aarav Joshi", password: pass, role: "volunteer", contact: "9988776655", location: "Viman Nagar, Pune", impactScore: 450, hoursVolunteered: 12 },
+      { upsert: true }
+    );
+
+    res.json({ message: "✅ Demo accounts created successfully on Atlas!" });
+  } catch (err) {
+    res.status(500).json({ message: "Seed failed", error: err.message });
+  }
+});
+
 module.exports = router;
